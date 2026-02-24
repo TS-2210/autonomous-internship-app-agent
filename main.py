@@ -85,10 +85,36 @@ tools = [
         }
     }
 ]
+
+## Planning stage
+user_goal = "Find me data analyst internships and tell me which skills I am missing."
+
+planning_prompt = f"""
+You are an autonomous career agent.
+The user's goal is: {user_goal}
+Create a short step-by-step plan using available tools:
+- search_jobs
+- analyse_job
+- match_skills
+Return the plan as clearly set out steps.
+"""
+
+plan_response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "system", "content": planning_prompt}]
+)
+
+plan = plan_response.choices[0].message.content
+print(f"Generated Plan:\n{plan}\n")
+
 messages = [
-        {"role": "system", "content": "You are a job application assistant. You help users find internships and analyse job requirements. You are truthful and only use the provided tools to answer questions about job searching and skill matching."},
-        {"role": "user", "content": "Find me data analyst internships in London and tell me what skills I need to work on."}
-    ]
+    {"role": "user", "content": user_goal}
+]
+
+#messages = [
+#        {"role": "system", "content": "You are a job application assistant. You help users find internships and analyse job requirements. You are truthful and only use the provided tools to answer questions about job searching and skill matching."},
+#        {"role": "user", "content": "Find me data analyst internships in London and tell me what skills I need to work on."}
+#    ]
 
 response = client.chat.completions.create( # chat completion with tool calls
     model="gpt-4o-mini",
