@@ -15,7 +15,7 @@ c.execute('''CREATE TABLE IF NOT EXISTS jobs (
           location TEXT,
           skills TEXT
           )''')
-c.commit()
+conn.commit()
 
 ## Sample data
 sample_jobs = [
