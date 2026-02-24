@@ -168,3 +168,17 @@ while message.tool_calls:
 
 print("\nFinal Response:")
 print(message.content)
+
+## Reflection stage
+reflection_prompt = f"""
+Evaluate this output from 1-10 for usefulness and clarity.
+If it is below 8, rewrite it to improve it.
+Output:
+{message.content}
+"""
+reflection = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "system", "content": reflection_prompt}]
+)
+print("\nReflection:")
+print(reflection.choices[0].message.content)
