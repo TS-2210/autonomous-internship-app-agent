@@ -1,10 +1,21 @@
 import os
+import sqlite3
 import json
 from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
 client = OpenAI()
+
+## Database setup
+conn = sqlite3.connect('jobs.db')
+c = conn.cursor()
+c.execute('''CREATE TABLE IF NOT EXISTS jobs (
+          title TEXT,
+          location TEXT,
+          skills TEXT
+          )''')
+c.commit()
 
 ## Sample data
 sample_jobs = [
@@ -24,6 +35,9 @@ sample_skills = ["Python", "Machine Learning", "Statistics", "PowerPoint", "Line
 ## Tool definitions
 def search_jobs(query: str):
     results = [job for job in sample_jobs if query.lower() in job["title"].lower()]
+    for job in results:
+        c.execute("INSERT INTO jobs VALUES (?, ?, ?)", (job["title"], job["location"], json.dumps(job["skills"])))
+    conn.commit()
     return json.dumps(results)
 
 def analyse_job(job_json: str):
