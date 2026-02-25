@@ -19,34 +19,55 @@ class InternshipAgent:
                 for skill in result["missing_skills"]:
                     print(skill)
 
+    def think(self):
+        if not self.state["jobs_found"]:
+            print("Thinking: searching for jobs.")
+            return {"action": "search_jobs", "input": self.goal}
+        elif not self.state["analysis_results"]:
+            print("Thinking: analysing jobs.")
+            return {"action": "analyse_jobs"}
+        else:
+            print("Thinking: task complete.")
+            self.state["completed"] = True
+            return {"action": "finish"}
+        
+    def act(self, action_dict):
+        action = action_dict["action"]
+        if action == "search_jobs":
+            results = search_jobs(action_dict["input"], self.memory)
+            print("Jobs found:", results)
+            self.state["jobs_found"] = results
+        elif action == "analyse_jobs":
+            analysis_results = []
+            for job in self.state["jobs_found"]:
+                skills = analyse_job(job)
+                comparison = match_skills(skills)
+                analysis_results.append({
+                    "job_title": job["title"],
+                    "matched_skills": comparison["matched_skills"],
+                    "missing_skills": comparison["missing_skills"]
+                })
+            print("Analysis complete:", analysis_results)
+            self.state["analysis_results"] = analysis_results
+        elif action == "finish":
+            print("Agent has finished the task.")
+
     def run(self, goal):
         print(f"Goal: {goal}")
-        plan = self.planner.create_plan(goal)
-        print("Generated plan:", plan)
-        for step in plan:
-            action = step["action"]
-            if action == "search_jobs":
-                results = search_jobs(step["input"], self.memory)
-                print("Search results:", results)
-                self.current_jobs = results
-            elif action == "analyse_job":
-                all_results = []
-                for job in self.current_jobs:
-                    skills = analyse_job(job)
-                    comparison = match_skills(skills)
-                    result = {
-                        "job_title": job["title"],
-                        "matched_skills": comparison["matched_skills"],
-                        "missing_skills": comparison["missing_skills"]
-                    }
-                    all_results.append(result)
-                self.analysis_results = all_results
-                print("Multi-job analysis:")
-                for r in all_results:
-                    print(r)
-            elif action == "match_skills":
-                if self.current_skills:
-                    comparison = match_skills(self.current_skills)
-                    print("Skill Comparison:", comparison)
+        self.goal = goal
+        self.state = {
+            "jobs_found": [],
+            "analysis_results": [],
+            "completed": False
+        }
+        step_counter = 0
+        max_steps = 5
+        while not self.state["completed"] and step_counter < max_steps:
+            print(f"Step {step_counter + 1}")
+            action = self.think()
+            self.act(action)
+            step_counter += 1
+        print("Final State:")
+        print(self.state)
         print("Database contents:", self.memory.get_jobs())
         self.reflect()
