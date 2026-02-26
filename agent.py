@@ -38,11 +38,16 @@ class InternshipAgent:
             for job in self.state["jobs_found"]:
                 skills = analyse_job(job)
                 comparison = match_skills(skills)
+                total_skills = len(skills)
+                matched_count = len(comparison["matched_skills"])
+                score = round((matched_count/total_skills) * 100, 2)
                 analysis_results.append({
                     "job_title": job["title"],
                     "matched_skills": comparison["matched_skills"],
-                    "missing_skills": comparison["missing_skills"]
+                    "missing_skills": comparison["missing_skills"],
+                    "match_score_percent": score
                 })
+                analysis_results.sort(key=lambda x: x["match_score_percent"], reverse=True)
             print("Analysis complete:", analysis_results)
             self.state["analysis_results"] = analysis_results
         elif action == "finish":
@@ -70,10 +75,15 @@ class InternshipAgent:
 
     def reflect(self):
         print("Reflection Phase:")
-        for result in self.state["analysis_results"]:
-            if len(result["missing_skills"]) == 0:
-                print(f"{result['job_title']} is a strong match for your skills.")
-            else:
-                print(f"For {result['job_title']}, you should improve:")
-                for skill in result["missing_skills"]:
-                    print(skill)
+        if not self.state["analysis_results"]:
+            print("No jobs were analysed.")
+            return
+        top_job = self.state["analysis_results"][0]
+        print(f"Top match: {top_job['job_title']}")
+        print(f"Match score: {top_job['match_score_percent']}%")
+        if top_job["missing_skills"]:
+            print("Skills to improve:")
+            for skill in top_job["missing_skills"]:
+                print(skill)
+        else:
+            print("You are fully qualified for this role based on listed skills.")

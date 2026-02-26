@@ -16,7 +16,12 @@ sample_jobs = [
 sample_skills = ["Python", "Machine Learning", "Statistics", "PowerPoint", "Linear Algebra"]
 
 def search_jobs(query, memory):
-    results = [job for job in sample_jobs if query.lower() in job["title"].lower()]
+    query_words = query.lower().split()
+    results = []
+    for job in sample_jobs:
+        job_title_words = job["title"].lower()
+        if any(word in job_title_words for word in query_words):
+            results.append(job)
     for job in results:
         memory.insert_job(job)
     return results
