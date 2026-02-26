@@ -1,23 +1,19 @@
 from tools import search_jobs, analyse_job, match_skills
-from planner import Planner
 from memory import JobDatabase
 
 class InternshipAgent:
     def __init__(self):
         self.memory = JobDatabase()
-        self.planner = Planner()
         self.current_job = None
         self.current_skills = None
-    
-    def reflect(self):
-        print("Reflection Phase:")
-        for result in self.analysis_results:
-            if len(result["missing_skills"]) == 0:
-                print(f"{result['job_title']} is a strong match for your skills.")
-            else:
-                print(f"For {result['job_title']}, you should improve:")
-                for skill in result["missing_skills"]:
-                    print(skill)
+
+    def extract_key_info(self):
+        if "data analyst" in self.goal.lower():
+            return "data analyst"
+        elif "investment banking" in self.goal.lower():
+            return "investment banking"
+        else:
+            return self.goal
 
     def think(self):
         if not self.state["jobs_found"]:
@@ -25,7 +21,7 @@ class InternshipAgent:
             return {"action": "search_jobs", "input": self.goal}
         elif not self.state["analysis_results"]:
             print("Thinking: analysing jobs.")
-            return {"action": "analyse_jobs"}
+            return {"action": "analyse_job"}
         else:
             print("Thinking: task complete.")
             self.state["completed"] = True
@@ -37,7 +33,7 @@ class InternshipAgent:
             results = search_jobs(action_dict["input"], self.memory)
             print("Jobs found:", results)
             self.state["jobs_found"] = results
-        elif action == "analyse_jobs":
+        elif action == "analyse_job":
             analysis_results = []
             for job in self.state["jobs_found"]:
                 skills = analyse_job(job)
@@ -71,3 +67,13 @@ class InternshipAgent:
         print(self.state)
         print("Database contents:", self.memory.get_jobs())
         self.reflect()
+
+    def reflect(self):
+        print("Reflection Phase:")
+        for result in self.state["analysis_results"]:
+            if len(result["missing_skills"]) == 0:
+                print(f"{result['job_title']} is a strong match for your skills.")
+            else:
+                print(f"For {result['job_title']}, you should improve:")
+                for skill in result["missing_skills"]:
+                    print(skill)
