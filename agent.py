@@ -17,7 +17,12 @@ class InternshipAgent:
 
     def think(self):
         if not self.state["jobs_found"]:
+            if self.state.get("search_attempted"):
+                print("Thinking: no jobs found. Ending task.")
+                self.state["completed"] = True
+                return {"action": "finish"}
             print("Thinking: searching for jobs.")
+            self.state["search_attempted"] = True
             return {"action": "search_jobs", "input": self.goal}
         elif not self.state["analysis_results"]:
             print("Thinking: analysing jobs.")
